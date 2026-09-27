@@ -1,7 +1,9 @@
 import { type DragEvent, useState } from "react";
 
 import { isCategory } from "../config/categories";
-import { useGrammar } from "../context/GrammarContext";
+
+import { addWord } from "../store/grammarReducer";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 
 import type { GrammarWordRef } from "../types/grammar";
 
@@ -10,7 +12,9 @@ function GrammarDropZone() {
 
     const [justAdded, setJustAdded] = useState(false);
 
-    const { addWord, count } = useGrammar();
+    const dispatch = useAppDispatch();
+
+    const count = useAppSelector((state) => state.grammar.words.length);
 
     const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
@@ -57,7 +61,7 @@ function GrammarDropZone() {
                 id: word.id,
             };
 
-            addWord(grammarWord);
+            dispatch(addWord(grammarWord));
 
             setJustAdded(true);
 
@@ -71,9 +75,9 @@ function GrammarDropZone() {
 
     return (
         <div
-            className={`grammar-drop-zone ${isDraggingOver ? "drag-over" : ""} ${
-                justAdded ? "added" : ""
-            }`}
+            className={`grammar-drop-zone ${
+                isDraggingOver ? "drag-over" : ""
+            } ${justAdded ? "added" : ""}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}

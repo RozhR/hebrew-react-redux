@@ -1,25 +1,16 @@
-import { useState } from "react";
-
 import { CATEGORY_CONFIG, CATEGORIES } from "../config/categories";
 
-import type { TestStats } from "../types";
+import { clearStatistics } from "../store/statisticsReducer";
+
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 
 function Statistics() {
-    const [stats, setStats] = useState<TestStats>(() => {
-        try {
-            const savedStats = localStorage.getItem("testStats");
+    const dispatch = useAppDispatch();
 
-            return savedStats ? JSON.parse(savedStats) : {};
-        } catch {
-            return {};
-        }
-    });
+    const stats = useAppSelector((state) => state.statistics);
 
-    const clearStatistics = () => {
-        localStorage.removeItem("testStats");
-        setStats({});
-
-        window.dispatchEvent(new Event("levelsUpdated"));
+    const handleClearStatistics = () => {
+        dispatch(clearStatistics());
     };
 
     const hasStatistics = CATEGORIES.some(
@@ -115,7 +106,7 @@ function Statistics() {
                 <button
                     type="button"
                     className="styled-btn clear-statistics-btn"
-                    onClick={clearStatistics}
+                    onClick={handleClearStatistics}
                 >
                     Очистить статистику
                 </button>

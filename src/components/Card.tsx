@@ -7,7 +7,9 @@ import {
     useState,
 } from "react";
 
-import { useGrammar } from "../context/GrammarContext";
+import { addWord, removeWord } from "../store/grammarReducer";
+
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 
 import type { CardWithId, Category } from "../types";
 
@@ -26,7 +28,7 @@ function Card({ card, category }: CardProps) {
 
     const [isTouchDevice, setIsTouchDevice] = useState(false);
 
-    const { addWord, removeWord, isInGrammar } = useGrammar();
+    const dispatch = useAppDispatch();
 
     const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -44,11 +46,10 @@ function Card({ card, category }: CardProps) {
         id: card.id,
     };
 
-    const inGrammar = isInGrammar(grammarWord);
+    const inGrammar = useAppSelector((state) =>
+        state.grammar.words.some((item) => item.category === category && item.id === card.id),
+    );
 
-    /*
-     * Определяем touch-устройство.
-     */
     useEffect(() => {
         const checkTouchDevice = () => {
             setIsTouchDevice(
@@ -83,15 +84,7 @@ function Card({ card, category }: CardProps) {
         };
     }, []);
 
-    /*
-     * Обычный короткий клик / tap:
-     * переворачиваем карточку.
-     */
     const handleClick = () => {
-        /*
-         * После long press браузер
-         * может создать дополнительный click.
-         */
         if (longPressTriggered.current) {
             longPressTriggered.current = false;
 
@@ -101,10 +94,6 @@ function Card({ card, category }: CardProps) {
         setIsFlipped((current) => !current);
     };
 
-    /*
-     * DESKTOP:
-     * обычный drag-and-drop.
-     */
     const handleDragStart = (event: DragEvent<HTMLDivElement>) => {
         if (isTouchDevice) {
             event.preventDefault();
@@ -117,15 +106,7 @@ function Card({ card, category }: CardProps) {
         event.dataTransfer.setData("application/json", JSON.stringify(grammarWord));
     };
 
-    /*
-     * MOBILE:
-     * начало удержания.
-     */
     const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
-        /*
-         * Нас интересует только
-         * одно касание.
-         */
         if (event.touches.length !== 1) {
             return;
         }
@@ -152,22 +133,12 @@ function Card({ card, category }: CardProps) {
 
             setIsPressing(false);
 
-            /*
-             * Если слово уже выбрано —
-             * удаляем.
-             *
-             * Иначе добавляем.
-             */
             if (pressedInGrammar.current) {
-                removeWord(grammarWord);
+                dispatch(removeWord(grammarWord));
             } else {
-                addWord(grammarWord);
+                dispatch(addWord(grammarWord));
             }
 
-            /*
-             * Короткая вибрация,
-             * если телефон поддерживает.
-             */
             if ("vibrate" in navigator) {
                 navigator.vibrate(30);
             }
@@ -176,11 +147,6 @@ function Card({ card, category }: CardProps) {
         }, LONG_PRESS_DELAY);
     };
 
-    /*
-     * Если пользователь начал
-     * прокручивать страницу —
-     * отменяем long press.
-     */
     const handleTouchMove = (event: TouchEvent<HTMLDivElement>) => {
         if (!longPressTimer.current) {
             return;
@@ -203,10 +169,6 @@ function Card({ card, category }: CardProps) {
         }
     };
 
-    /*
-     * Палец отпущен раньше 700ms —
-     * это обычный tap.
-     */
     const handleTouchEnd = () => {
         clearLongPress();
     };
@@ -215,19 +177,12 @@ function Card({ card, category }: CardProps) {
         clearLongPress();
     };
 
-    /*
-     * Удаление через ✓.
-     */
     const handleRemoveFromGrammar = (event: MouseEvent<HTMLButtonElement>) => {
         event.stopPropagation();
 
-        removeWord(grammarWord);
+        dispatch(removeWord(grammarWord));
     };
 
-    /*
-     * Не даём нажатию на ✓
-     * запустить long press карточки.
-     */
     const handleIndicatorTouchStart = (event: TouchEvent<HTMLButtonElement>) => {
         event.stopPropagation();
     };
@@ -241,38 +196,24 @@ function Card({ card, category }: CardProps) {
                 ${inGrammar ? "in-grammar" : ""}
             `}
             onClick={handleClick}
-
             draggable={!isTouchDevice}
-
             onDragStart={handleDragStart}
-
             onTouchStart={handleTouchStart}
-
             onTouchMove={handleTouchMove}
-
             onTouchEnd={handleTouchEnd}
-
             onTouchCancel={handleTouchCancel}
-
             onContextMenu={(event) => event.preventDefault()}
-
             data-category={category}
             data-id={card.id}
         >
             {inGrammar && (
                 <button
                     type="button"
-
                     className="grammar-card-indicator"
-
                     title="Удалить из грамматики"
-
                     aria-label="Удалить из грамматики"
-
                     draggable={false}
-
                     onTouchStart={handleIndicatorTouchStart}
-
                     onClick={handleRemoveFromGrammar}
                 >
                     <span className="grammar-indicator-check">✓</span>

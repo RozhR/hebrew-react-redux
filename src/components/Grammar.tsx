@@ -4,8 +4,10 @@ import { Link } from "react-router-dom";
 import GrammarCard from "./grammar/GrammarCard";
 import { AdjectiveDetails, AdverbDetails, VerbDetails } from "./grammar/GrammarDetails";
 
-import { useGrammar } from "../context/GrammarContext";
 import { getAdjectiveGrammar, getAdverbGrammar, getVerbGrammar } from "../utils/grammarData";
+import { clearGrammar, removeWord } from "../store/grammarReducer";
+
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 
 import type { GrammarWordRef } from "../types/grammar";
 
@@ -14,7 +16,11 @@ function getWordKey(word: GrammarWordRef): string {
 }
 
 function Grammar() {
-    const { words, count, removeWord, clearGrammar } = useGrammar();
+    const dispatch = useAppDispatch();
+
+    const words = useAppSelector((state) => state.grammar.words);
+
+    const count = words.length;
 
     const [expandedWords, setExpandedWords] = useState<Set<string>>(new Set());
 
@@ -41,7 +47,7 @@ function Grammar() {
             return;
         }
 
-        clearGrammar();
+        dispatch(clearGrammar());
         setExpandedWords(new Set());
     };
 

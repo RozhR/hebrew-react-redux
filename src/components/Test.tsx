@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 
 import { PASS_PERCENT, TEST_TIMER_SECONDS, TIMER_WARNING_SECONDS } from "../config/test";
 
-import type { CardData, Category, TestAttempt, TestStats } from "../types";
+import type { CardData, Category, TestAttempt } from "../types";
+
+import { addTestAttempt } from "../store/statisticsReducer";
+
+import { useAppDispatch } from "../store/hooks";
 
 import { unlockNextLevel } from "../utils/progress";
 
@@ -41,28 +45,8 @@ function generateAnswers(words: CardData[], currentWord: CardData): string[] {
     return shuffleArray([currentWord.russian, ...shuffleArray(wrongAnswers).slice(0, 3)]);
 }
 
-function saveStatistics(category: Category, level: number, attempt: TestAttempt): void {
-    const savedStats = localStorage.getItem("testStats");
-
-    const stats: TestStats = (() => {
-        try {
-            return savedStats ? JSON.parse(savedStats) : {};
-        } catch {
-            return {};
-        }
-    })();
-
-    stats[category] ??= {};
-    stats[category]![level] ??= [];
-
-    stats[category]![level]!.push(attempt);
-
-    localStorage.setItem("testStats", JSON.stringify(stats));
-
-    window.dispatchEvent(new Event("levelsUpdated"));
-}
-
 export function Test({ words, category, level, isLastLevel, onBackToCards }: TestProps) {
+    const dispatch = useAppDispatch();
     const [testWords, setTestWords] = useState<CardData[]>(() => shuffleArray(words));
 
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -94,7 +78,7 @@ export function Test({ words, category, level, isLastLevel, onBackToCards }: Tes
             date: new Date().toISOString(),
         };
 
-        saveStatistics(category, level, attempt);
+        dispatch(addTestAttempt(category, level, attempt));
 
         if (percent >= PASS_PERCENT) {
             unlockNextLevel(category, level);

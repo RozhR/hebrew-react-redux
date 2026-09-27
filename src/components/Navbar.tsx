@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 
 import { CATEGORY_CONFIG, CATEGORIES } from "../config/categories";
-import { useGrammar } from "../context/GrammarContext";
+import { useAppSelector } from "../store/hooks";
 import type { Category } from "../types";
 import { isLevelUnlocked } from "../utils/progress";
 
@@ -10,7 +10,7 @@ function Navbar() {
     const [, setUpdate] = useState(0);
     const [openCategory, setOpenCategory] = useState<Category | null>(null);
 
-    const { count } = useGrammar();
+    const count = useAppSelector((state) => state.grammar.words.length);
 
     useEffect(() => {
         const handleLevelsUpdated = () => {

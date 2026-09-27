@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { PASS_PERCENT, TEST_TIMER_SECONDS, TIMER_WARNING_SECONDS } from "../config/test";
 
-import { useGrammar } from "../context/GrammarContext";
+import { useAppSelector } from "../store/hooks";
 
 import type { VerbGrammar } from "../types/grammar";
 
@@ -23,7 +23,8 @@ type QuestionLimit = "10" | "20" | "all";
 
 function GrammarTest() {
     const navigate = useNavigate();
-    const { words } = useGrammar();
+
+    const words = useAppSelector((state) => state.grammar.words);
 
     const verbGrammars = useMemo(
         () =>
