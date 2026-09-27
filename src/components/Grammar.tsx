@@ -115,7 +115,7 @@ function Grammar() {
                                     level={grammar.base.level}
                                     expanded={expandedWords.has(key)}
                                     onToggle={() => toggleWord(word)}
-                                    onRemove={() => removeWord(word)}
+                                    onRemove={() => dispatch(removeWord(word))}
                                 >
                                     <VerbDetails grammar={grammar} />
                                 </GrammarCard>
@@ -147,7 +147,7 @@ function Grammar() {
                                     level={grammar.base.level}
                                     expanded={expandedWords.has(key)}
                                     onToggle={() => toggleWord(word)}
-                                    onRemove={() => removeWord(word)}
+                                    onRemove={() => dispatch(removeWord(word))}
                                 >
                                     <AdjectiveDetails grammar={grammar} />
                                 </GrammarCard>
@@ -179,7 +179,7 @@ function Grammar() {
                                     level={grammar.base.level}
                                     expanded={expandedWords.has(key)}
                                     onToggle={() => toggleWord(word)}
-                                    onRemove={() => removeWord(word)}
+                                    onRemove={() => dispatch(removeWord(word))}
                                 >
                                     <AdverbDetails grammar={grammar} />
                                 </GrammarCard>
