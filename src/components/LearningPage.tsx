@@ -9,7 +9,7 @@ import { adjectivesData } from "../data/adjectives";
 import { adverbsData } from "../data/adverbs";
 import { verbsData } from "../data/verbs";
 
-import { isLevelUnlocked } from "../utils/progress";
+import { useAppSelector } from "../store/hooks";
 
 import type { Category } from "../types";
 
@@ -33,6 +33,8 @@ type LearningPageProps = {
 function LearningPage({ testMode = false }: LearningPageProps) {
     const navigate = useNavigate();
 
+    const progress = useAppSelector((state) => state.progress);
+
     const { category: categoryParam, level: levelParam } = useParams();
 
     if (!isCategory(categoryParam)) {
@@ -49,7 +51,7 @@ function LearningPage({ testMode = false }: LearningPageProps) {
         return <Navigate to={`/${categoryParam}/1`} replace />;
     }
 
-    if (!isLevelUnlocked(categoryParam, level)) {
+    if (level > progress[categoryParam]) {
         return <Navigate to={`/${categoryParam}/1`} replace />;
     }
 

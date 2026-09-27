@@ -4,7 +4,7 @@ import { PASS_PERCENT } from "../config/test";
 
 import type { Category, TestStats } from "../types";
 
-type UserProgress = Record<Category, number>;
+export type UserProgress = Record<Category, number>;
 
 const DEFAULT_PROGRESS: UserProgress = {
     verbs: 1,
@@ -56,49 +56,66 @@ function getProgressFromStatistics(): UserProgress {
 
 function loadProgress(): UserProgress {
     try {
-        const savedProgress = localStorage.getItem("userProgress");
+        const saved = localStorage.getItem("userProgress");
 
-        if (savedProgress) {
+        if (saved) {
             return {
                 ...DEFAULT_PROGRESS,
-                ...JSON.parse(savedProgress),
+                ...JSON.parse(saved),
             };
         }
     } catch {
-        // Создадим прогресс заново.
+        // Используем восстановление из статистики.
     }
 
-    /*
-     * Миграция со старой версии:
-     * если userProgress ещё нет,
-     * восстанавливаем открытые уровни
-     * из существующей статистики.
-     */
-    const migratedProgress = getProgressFromStatistics();
-
-    localStorage.setItem("userProgress", JSON.stringify(migratedProgress));
-
-    return migratedProgress;
+    return getProgressFromStatistics();
 }
 
-export function unlockNextLevel(category: Category, level: number): void {
-    const progress = loadProgress();
+const initialState: UserProgress = loadProgress();
 
-    const nextLevel = Math.min(level + 1, CATEGORY_CONFIG[category].levels);
+const UNLOCK_NEXT_LEVEL = "progress/unlockNextLevel";
 
-    progress[category] = Math.max(progress[category], nextLevel);
+type UnlockNextLevelAction = {
+    type: typeof UNLOCK_NEXT_LEVEL;
+    payload: {
+        category: Category;
+        level: number;
+    };
+};
 
-    localStorage.setItem("userProgress", JSON.stringify(progress));
+export type ProgressAction = UnlockNextLevelAction;
 
-    window.dispatchEvent(new Event("levelsUpdated"));
+export function unlockNextLevel(category: Category, level: number): UnlockNextLevelAction {
+    return {
+        type: UNLOCK_NEXT_LEVEL,
+        payload: {
+            category,
+            level,
+        },
+    };
 }
 
-export function isLevelUnlocked(category: Category, level: number): boolean {
-    if (level === 1) {
-        return true;
+export function progressReducer(
+    state: UserProgress = initialState,
+    action: ProgressAction,
+): UserProgress {
+    switch (action.type) {
+        case UNLOCK_NEXT_LEVEL: {
+            const { category, level } = action.payload;
+
+            const nextLevel = Math.min(level + 1, CATEGORY_CONFIG[category].levels);
+
+            if (state[category] >= nextLevel) {
+                return state;
+            }
+
+            return {
+                ...state,
+                [category]: nextLevel,
+            };
+        }
+
+        default:
+            return state;
     }
-
-    const progress = loadProgress();
-
-    return level <= progress[category];
 }

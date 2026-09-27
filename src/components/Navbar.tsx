@@ -1,28 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
 
 import { CATEGORY_CONFIG, CATEGORIES } from "../config/categories";
 import { useAppSelector } from "../store/hooks";
 import type { Category } from "../types";
-import { isLevelUnlocked } from "../utils/progress";
 
 function Navbar() {
-    const [, setUpdate] = useState(0);
     const [openCategory, setOpenCategory] = useState<Category | null>(null);
 
     const count = useAppSelector((state) => state.grammar.words.length);
 
-    useEffect(() => {
-        const handleLevelsUpdated = () => {
-            setUpdate((previous) => previous + 1);
-        };
-
-        window.addEventListener("levelsUpdated", handleLevelsUpdated);
-
-        return () => {
-            window.removeEventListener("levelsUpdated", handleLevelsUpdated);
-        };
-    }, []);
+    const progress = useAppSelector((state) => state.progress);
 
     const closeMenu = () => {
         setOpenCategory(null);
@@ -61,7 +49,7 @@ function Navbar() {
                             >
                                 {Array.from({ length: config.levels }, (_, index) => index + 1).map(
                                     (level) => {
-                                        const unlocked = isLevelUnlocked(category, level);
+                                        const unlocked = level <= progress[category];
 
                                         return (
                                             <li key={level}>

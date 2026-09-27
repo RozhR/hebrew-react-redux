@@ -8,7 +8,7 @@ import { addTestAttempt } from "../store/statisticsReducer";
 
 import { useAppDispatch } from "../store/hooks";
 
-import { unlockNextLevel } from "../utils/progress";
+import { unlockNextLevel } from "../store/progressReducer";
 
 interface TestProps {
     words: CardData[];
@@ -81,7 +81,7 @@ export function Test({ words, category, level, isLastLevel, onBackToCards }: Tes
         dispatch(addTestAttempt(category, level, attempt));
 
         if (percent >= PASS_PERCENT) {
-            unlockNextLevel(category, level);
+            dispatch(unlockNextLevel(category, level));
         }
 
         setIsFinished(true);
